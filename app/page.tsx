@@ -39,6 +39,15 @@ export default function Home() {
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [newPassword, setNewPassword] = useState('');
 
+  // 👇 ここから追加 👇
+  // 時間の選択肢を生成する（00:00 〜 23:30）
+  const timeOptions = Array.from({ length: 48 }, (_, i) => {
+    const hour = Math.floor(i / 2).toString().padStart(2, '0');
+    const minute = i % 2 === 0 ? '00' : '30';
+    return `${hour}:${minute}`;
+  });
+  // 👆 ここまで追加 👆
+
   const fetchData = async () => {
     const { data: bData } = await supabase.from('bookings').select('*').order('date', { ascending: true }).order('start_time', { ascending: true });
     if (bData) setBookings(bData);
@@ -287,8 +296,14 @@ export default function Home() {
               <form className="space-y-4" onSubmit={handleBookingSubmit}>
                 <div><label className="block text-xs font-bold text-gray-500 mb-1">予約日: {selectedDateStr}</label></div>
                 <div className="grid grid-cols-2 gap-2">
-                  <input type="time" required className="rounded-lg border p-2 text-sm" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
-                  <input type="time" required className="rounded-lg border p-2 text-sm" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+                  <select required className="rounded-lg border p-2 text-sm bg-white" value={startTime} onChange={(e) => setStartTime(e.target.value)}>
+                    <option value="" disabled>開始時間</option>
+                    {timeOptions.map(time => <option key={`start-${time}`} value={time}>{time}</option>)}
+                  </select>
+                  <select required className="rounded-lg border p-2 text-sm bg-white" value={endTime} onChange={(e) => setEndTime(e.target.value)}>
+                    <option value="" disabled>終了時間</option>
+                    {timeOptions.map(time => <option key={`end-${time}`} value={time}>{time}</option>)}
+                  </select>
                 </div>
                 <input type="text" required className="w-full rounded-lg border p-2 text-sm" placeholder="目的" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
                 <button type="submit" disabled={isLoading} className={`w-full rounded-lg py-3 text-sm font-bold text-white ${editingId ? 'bg-amber-600' : 'bg-blue-600'}`}>{editingId ? '変更を確定' : '予約を確定'}</button>
