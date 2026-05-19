@@ -130,9 +130,11 @@ export default function Home() {
   const month = currentDate.getMonth();
   const firstDayOfMonth = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const calendarDays = Array.from({ length: firstDayOfMonth }, () => null).concat(
-    Array.from({ length: daysInMonth }, (_, i) => new Date(year, month, i + 1))
-  );
+  const calendarDays: (Date | null)[] = [
+    ...Array.from({ length: firstDayOfMonth }, () => null),
+    ...Array.from({ length: daysInMonth }, (_, i) => new Date(year, month, i + 1))
+  ];
+ 
 
   const today = new Date();
   const maxDate = new Date();
