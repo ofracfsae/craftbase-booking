@@ -28,9 +28,14 @@ export default function Home() {
   const [maxMonths, setMaxMonths] = useState<number>(1);
   const [currentDate, setCurrentDate] = useState(new Date());
   
+  // 【追加】日本時間で正しく YYYY-MM-DD を作る関数
+  const getLocalYYYYMMDD = (d: Date) => {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+
   // 開始日と終了日のステート
-  const [selectedDateStr, setSelectedDateStr] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [endDateStr, setEndDateStr] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [selectedDateStr, setSelectedDateStr] = useState<string>(getLocalYYYYMMDD(new Date()));
+  const [endDateStr, setEndDateStr] = useState<string>(getLocalYYYYMMDD(new Date()));
 
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
@@ -249,7 +254,9 @@ export default function Home() {
               <div className="grid grid-cols-7 gap-2">
                 {calendarDays.map((dateObj, idx) => {
                   if (!dateObj) return <div key={`empty-${idx}`} className="bg-gray-50/50 rounded-xl h-14" />;
-                  const dateStr = dateObj.toISOString().split('T')[0];
+                  
+                  // toISOString() の罠を回避して自作関数を使う
+                  const dateStr = getLocalYYYYMMDD(dateObj);
                   
                   // その日が予約期間に含まれているかチェック
                   const hasBooking = bookings.some((b) => {
