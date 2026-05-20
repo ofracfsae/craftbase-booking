@@ -359,7 +359,7 @@ export default function Home() {
                     {timeOptions.map(time => <option key={`end-${time}`} value={time}>{time}</option>)}
                   </select>
                 </div>
-                <input type="text" required className="w-full rounded-lg border p-2 text-sm" placeholder="目的（例：フレーム溶接、定例会など）" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
+                <input type="text" required className="w-full rounded-lg border p-2 text-sm" placeholder="目的（例：ミーティングなど）" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
                 <button type="submit" disabled={isLoading} className={`w-full rounded-lg py-3 text-sm font-bold text-white ${editingId ? 'bg-amber-600' : 'bg-blue-600'}`}>{editingId ? '変更を確定' : '予約を確定'}</button>
               </form>
             </div>
