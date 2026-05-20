@@ -76,10 +76,41 @@ export default function Home() {
   };
 
   // 予約の登録・編集
+  // 予約の登録・編集
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // 【チェック1】開始と終了の時間関係が正しいか
+    if (startTime >= endTime) {
+      alert('終了時間は開始時間よりも後の時間に設定してください。');
+      return;
+    }
+
     setIsLoading(true);
 
+    // 【チェック2】ダブルブッキング（時間の重複）がないか
+    const isDuplicate = bookings.some((b) => {
+      // 既存の予約を編集中の場合、自分自身の元の予約データは重複チェックから除外する
+      if (editingId && b.id === editingId) return false;
+      
+      // 同じ日付の予約のみを比較対象にする
+      if (b.date !== selectedDateStr) return false;
+
+      // Supabaseから取得した時間は「10:00:00」形式の場合があるため、先頭5文字（10:00）に揃える
+      const existingStart = b.start_time.slice(0, 5);
+      const existingEnd = b.end_time.slice(0, 5);
+
+      // 重複の条件：新開始 < 旧終了 AND 新終了 > 旧開始
+      return startTime < existingEnd && endTime > existingStart;
+    });
+
+    if (isDuplicate) {
+      alert('指定された時間帯は、すでに他の予約が入っているため予約できません。');
+      setIsLoading(false);
+      return;
+    }
+
+    // 重複がなければデータベースに保存
     if (editingId) {
       const { error } = await supabase.from('bookings').update({ date: selectedDateStr, start_time: startTime, end_time: endTime, purpose: purpose }).eq('id', editingId);
       if (error) alert('変更に失敗しました。');
@@ -93,39 +124,6 @@ export default function Home() {
     fetchData();
     setIsLoading(false);
   };
-
-  // 予約の削除（admin または 予約した本人）
-  const handleDeleteBooking = async (id: string, owner: string) => {
-    if (loggedInUser !== 'admin' && loggedInUser !== owner) {
-      alert('他団体の予約は削除できません。');
-      return;
-    }
-
-    if (!confirm('この予約を削除してもよろしいですか？')) return;
-    const { error } = await supabase.from('bookings').delete().eq('id', id);
-    if (error) alert('削除に失敗しました。');
-    fetchData();
-  };
-
-  // パスワード変更処理
-  const handlePasswordChange = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newPassword.length < 6) {
-      alert('パスワードは6文字以上で入力してください。');
-      return;
-    }
-    setIsLoading(true);
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
-    if (error) {
-      alert('パスワードの変更に失敗しました。');
-    } else {
-      alert('パスワードを変更しました。次回ログイン時から有効です。');
-      setNewPassword('');
-      setShowPasswordForm(false);
-    }
-    setIsLoading(false);
-  };
-
   // 編集モード
   const startEdit = (booking: Booking) => {
     setEditingId(booking.id);
